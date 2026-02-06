@@ -1,0 +1,12 @@
+# Python
+venv/
+Backend/venv/
+__pycache__/
+*.pyc
+
+# Environment variables
+.env
+Backend/.env
+
+# Uploaded files
+Backend/uploads/
