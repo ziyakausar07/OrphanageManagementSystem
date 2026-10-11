@@ -1,103 +1,131 @@
-import React, { useState, useEffect } from "react";
+import React, { useEffect, useState, useCallback } from "react";
 import { useAuth } from "../../context/AuthContext";
 import { getTasks, addTask, deleteTask, updateTaskStatus } from "../../api/staff";
 
 const DailyWork = () => {
-  const { user } = useAuth();
+  const { user, loading } = useAuth();
+
   const [tasks, setTasks] = useState([]);
   const [title, setTitle] = useState("");
   const [description, setDescription] = useState("");
-  const [loading, setLoading] = useState(false);
+  const [saving, setSaving] = useState(false);
+  const [fetching, setFetching] = useState(false);
 
-  useEffect(() => {
-    if (!user?.id) return;
-    fetchTasks();
-  }, [user?.id]);
-
-  const fetchTasks = async () => {
+  const fetchTasks = useCallback(async (userId) => {
+    if (!userId) return;
+    setFetching(true);
     try {
-      const res = await getTasks(user.id);
+      const res = await getTasks(userId);
       setTasks(res.data.tasks || []);
     } catch (err) {
-      console.error(err);
+      console.error("Fetch tasks error:", err);
+    } finally {
+      setFetching(false);
     }
-  };
+  }, []);
+
+  const activeUserId = user?.id || JSON.parse(localStorage.getItem("user") || "{}")?.id;
+
+  useEffect(() => {
+    if (loading) return;
+    if (activeUserId) {
+      fetchTasks(activeUserId);
+    }
+  }, [activeUserId, loading, fetchTasks]);
 
   const handleAddTask = async () => {
     if (!title.trim()) return alert("Title required");
-    setLoading(true);
+    if (!activeUserId) return alert("User not identified. Please login again.");
+
+    setSaving(true);
     try {
-      const res = await addTask(user.id, title, description);
-      setTasks(prev => [res.data.task, ...prev]);
+      const res = await addTask(activeUserId, title, description);
+      if (res.data?.task) {
+        setTasks((prev) => [res.data.task, ...prev]);
+      } else {
+        fetchTasks(activeUserId);
+      }
       setTitle("");
       setDescription("");
-    } catch {
+    } catch (err) {
+      console.error("Add task error:", err);
       alert("Failed to add task");
     } finally {
-      setLoading(false);
+      setSaving(false);
     }
   };
 
-  const handleDelete = async (task_id) => {
+  const handleDelete = async (taskId) => {
     try {
-      await deleteTask(task_id);
-      setTasks(prev => prev.filter(t => t.task_id !== task_id));
+      await deleteTask(taskId);
+      setTasks((prev) => prev.filter((t) => t.task_id !== taskId));
     } catch (err) {
-      console.error(err);
+      console.error("Delete task error:", err);
+      alert("Failed to delete task");
     }
   };
 
   const toggleStatus = async (task) => {
-    const newStatus = task.status === "pending" ? "completed" : "pending";
+    const newStatus = task.status === "completed" ? "pending" : "completed";
     try {
       await updateTaskStatus(task.task_id, newStatus);
-      setTasks(prev =>
-        prev.map(t =>
+      setTasks((prev) =>
+        prev.map((t) =>
           t.task_id === task.task_id ? { ...t, status: newStatus } : t
         )
       );
     } catch (err) {
-      console.error(err);
+      console.error("Status update error:", err);
     }
   };
+
+  if (loading) {
+    return <div style={{ textAlign: "center", marginTop: 60 }}>Loading...</div>;
+  }
 
   return (
     <div style={styles.page}>
       <div style={styles.container}>
         <h2 style={styles.heading}>📋 Daily Work</h2>
 
-        {/* Add Task */}
         <div style={styles.addTask}>
           <input
             style={styles.input}
-            placeholder="Task title"
+            placeholder="Task Title"
             value={title}
             onChange={(e) => setTitle(e.target.value)}
           />
           <input
             style={styles.input}
-            placeholder="Description (optional)"
+            placeholder="Task Description"
             value={description}
             onChange={(e) => setDescription(e.target.value)}
           />
-          <button style={styles.addBtn} onClick={handleAddTask} disabled={loading}>
-            {loading ? "Adding..." : "Add"}
+          <button
+            style={styles.addBtn}
+            onClick={handleAddTask}
+            disabled={saving}
+          >
+            {saving ? "Adding..." : "Add"}
           </button>
         </div>
 
-        {/* Task List */}
-        {tasks.length === 0 ? (
+        {fetching ? (
+          <p style={styles.noTask}>Loading tasks...</p>
+        ) : tasks.length === 0 ? (
           <p style={styles.noTask}>No tasks assigned</p>
         ) : (
           <div style={styles.taskList}>
-            {tasks.map(task => (
+            {tasks.map((task) => (
               <div key={task.task_id} style={styles.taskCard}>
                 <div
                   onClick={() => toggleStatus(task)}
                   style={{
                     cursor: "pointer",
-                    textDecoration: task.status === "completed" ? "line-through" : "none",
-                    color: task.status === "completed" ? "#9ca3af" : "#111",
+                    textDecoration:
+                      task.status === "completed" ? "line-through" : "none",
+                    color:
+                      task.status === "completed" ? "#9ca3af" : "#111",
                   }}
                 >
                   <strong>{task.title}</strong>
@@ -123,7 +151,6 @@ const DailyWork = () => {
 export default DailyWork;
 
 /* ===================== STYLES ===================== */
-
 const styles = {
   page: {
     minHeight: "100vh",

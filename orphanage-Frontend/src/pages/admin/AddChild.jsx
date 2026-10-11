@@ -78,7 +78,7 @@ export default function AddChild() {
       await api.post("/children/child", formData);
       alert("Child added successfully!");
       navigate("/admin/children");
-    } catch (err) {
+    } catch {
       alert("Failed to add child");
     }
   };

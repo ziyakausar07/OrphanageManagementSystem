@@ -10,7 +10,6 @@ export default function Messages() {
   useEffect(() => {
     if (loading || !user) return;
 
-    setLoadingMessages(true);
     api
       .get(`/notification/user/${user.id}`)
       .then(res => {

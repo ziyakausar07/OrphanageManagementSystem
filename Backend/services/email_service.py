@@ -56,7 +56,7 @@ def email_donor_status(email, status):
 # ================= STAFF LEAVE =================
 def email_admin_leave(leave_id, staff_name):
     admins = User.query.filter_by(role="ADMIN").all()
-    link = f"{FRONTEND_URL}/admin/staff-leave/{leave_id}"
+    link = f"{FRONTEND_URL}/admin/staff"
 
     for admin in admins:
         send_email(
@@ -98,4 +98,24 @@ def email_donation_status(user_email, donation_type, status):
         user_email,
         "Donation Request Update",
         f"Your {donation_type} donation request has been {status.upper()}."
+    )
+
+# ================= FORGOT PASSWORD =================
+def email_forgot_password(user_email, reset_token):
+    reset_link = f"{FRONTEND_URL}/reset-password/{reset_token}"
+    send_email(
+        user_email,
+        "Reset Your Password",
+        f"""Hello,
+
+You requested to reset your password.
+
+Click the link below to set a new password:
+{reset_link}
+
+This link is valid for 1 hour.
+If you did not request this, please ignore this email.
+
+Thank you.
+"""
     )

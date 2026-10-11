@@ -1,75 +1,50 @@
 from flask import Blueprint, request, jsonify
 from werkzeug.security import generate_password_hash, check_password_hash
 from datetime import datetime, timedelta
+from itsdangerous import URLSafeTimedSerializer
 import jwt
+from services.email_service import email_forgot_password
+
 from models import User, Staff, Donor, Admin
 from extensions import db
 from config import Config
 
 auth_bp = Blueprint("auth", __name__, url_prefix="/api/auth")
 
+# 🔐 Serializer
+serializer = URLSafeTimedSerializer(Config.SECRET_KEY)
+
 # ===================== REGISTER =====================
 @auth_bp.route("/register", methods=["POST"])
 def register():
     data = request.json
 
-    # -----------------------
-    # 1️⃣ Required fields
-    # -----------------------
     if not data.get("name") or not data.get("email") or not data.get("password") or not data.get("role"):
         return jsonify({"message": "All fields are required"}), 400
 
     if User.query.filter_by(email=data["email"]).first():
         return jsonify({"message": "User already exists"}), 409
 
-    # -----------------------
-    # 2️⃣ Create user
-    # -----------------------
     user = User(
         name=data["name"],
         email=data["email"],
         password=generate_password_hash(data["password"]),
-        role=data["role"].upper(),  # ensure uppercase
-        phone=data.get("phone"),
-        address=data.get("address"),
+        role=data["role"].upper(),
         status="active"
     )
 
     db.session.add(user)
-    db.session.commit()  # commit to get user_id
+    db.session.commit()
 
-    # -----------------------
-    # 3️⃣ Create role-specific table entry
-    # -----------------------
-    role = user.role
-
-    if role == "STAFF":
-        new_staff = Staff(
-            user_id=user.user_id,
-            designation=data.get("designation", "Staff"),
-            salary=data.get("salary", 30000),
-            joining_date=data.get("joining_date", datetime.utcnow().date())
-        )
-        db.session.add(new_staff)
-
-    elif role == "DONOR":
-        new_donor = Donor(
-            user_id=user.user_id,
-            company_name=data.get("company_name"),
-            profession=data.get("profession"),
-            approval_status="pending"
-        )
-        db.session.add(new_donor)
-
-    elif role == "ADMIN":
-        new_admin = Admin(user_id=user.user_id)
-        db.session.add(new_admin)
+    if user.role == "STAFF":
+        db.session.add(Staff(user_id=user.user_id, designation="Staff"))
+    elif user.role == "DONOR":
+        db.session.add(Donor(user_id=user.user_id))
+    elif user.role == "ADMIN":
+        db.session.add(Admin(user_id=user.user_id))
 
     db.session.commit()
 
-    # -----------------------
-    # 4️⃣ Generate JWT token
-    # -----------------------
     token = jwt.encode(
         {
             "user_id": user.user_id,
@@ -81,7 +56,6 @@ def register():
     )
 
     return jsonify({
-        "message": f"{role} registration successful",
         "token": token,
         "user": {
             "id": user.user_id,
@@ -92,26 +66,15 @@ def register():
     }), 201
 
 
-
-
-
 # ===================== LOGIN =====================
 @auth_bp.route("/login", methods=["POST"])
 def login():
     data = request.json
 
-    if not data.get("email") or not data.get("password"):
-        return jsonify({"message": "Email and password required"}), 400
-
-    user = User.query.filter_by(email=data["email"]).first()
-
-    if not user or not check_password_hash(user.password, data["password"]):
+    user = User.query.filter_by(email=data.get("email")).first()
+    if not user or not check_password_hash(user.password, data.get("password")):
         return jsonify({"message": "Invalid credentials"}), 401
 
-    if user.status != "active":
-        return jsonify({"message": "Account is inactive"}), 403
-
-    # 🔐 CREATE JWT TOKEN
     token = jwt.encode(
         {
             "user_id": user.user_id,
@@ -123,7 +86,6 @@ def login():
     )
 
     return jsonify({
-        "message": "Login successful",
         "token": token,
         "user": {
             "id": user.user_id,
@@ -132,3 +94,56 @@ def login():
             "role": user.role
         }
     }), 200
+
+
+# ===================== FORGOT PASSWORD =====================
+@auth_bp.route("/forgot-password", methods=["POST"])
+def forgot_password():
+    email = request.json.get("email")
+
+    if not email:
+        return jsonify({"message": "Email is required"}), 400
+
+    user = User.query.filter_by(email=email).first()
+    if not user:
+        return jsonify({"message": "Email not registered"}), 404
+
+    token = serializer.dumps(email, salt="password-reset")
+
+    email_forgot_password(user.email, token)
+
+    print("✅ FORGOT PASSWORD EMAIL SENT")
+    print("EMAIL:", user.email)
+    print("TOKEN:", token)
+
+    return jsonify({"message": "Reset link sent to your email"}), 200
+
+
+# ===================== RESET PASSWORD =====================
+@auth_bp.route("/reset-password/<token>", methods=["POST"])
+def reset_password(token):
+    data = request.json or {}
+    new_password = data.get("password")
+
+    if not new_password:
+        return jsonify({"message": "Password required"}), 400
+
+    try:
+        email = serializer.loads(
+            token,
+            salt="password-reset",
+            max_age=3600  # 1 hour
+        )
+    except Exception as e:
+        print("RESET TOKEN ERROR:", e)
+        return jsonify({"message": "Invalid or expired token"}), 400
+
+    user = User.query.filter_by(email=email).first()
+    if not user:
+        return jsonify({"message": "User not found"}), 404
+
+    user.password = generate_password_hash(new_password)
+    db.session.commit()
+
+    print("PASSWORD RESET FOR:", user.email)
+    return jsonify({"message": "Password reset successful"}), 200

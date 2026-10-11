@@ -1,7 +1,8 @@
 from flask import Blueprint, request, jsonify
 from datetime import datetime
 from extensions import db
-from models import StaffLeave, Staff, StaffTask, User
+from models import Notification, StaffLeave, Staff, StaffTask, User
+from services.email_service import email_admin_leave
 
 staff_bp = Blueprint("staff", __name__, url_prefix="/api/staff")
 
@@ -203,3 +204,51 @@ def update_staff_profile(user_id):
         "designation": staff.designation,
         "salary": staff.salary
     }), 200
+@staff_bp.route("/leave", methods=["POST"])
+def request_leave():
+    data = request.get_json()
+
+    user_id = data.get("user_id")
+    subject = data.get("subject", "General Leave")
+    leave_date = data.get("leave_date")
+    reason = data.get("reason")
+
+    if not user_id or not leave_date or not reason:
+        return jsonify({"error": "Missing required fields"}), 400
+
+    staff = Staff.query.filter_by(user_id=user_id).first()
+    if not staff:
+        return jsonify({"error": "Staff not found"}), 404
+
+    user = User.query.get(user_id)
+    if not user:
+        return jsonify({"error": "User not found"}), 404
+
+    # date convert
+    try:
+        leave_date_obj = datetime.strptime(leave_date, "%Y-%m-%d").date()
+    except ValueError:
+        return jsonify({"error": "Invalid date format"}), 400
+
+    leave = StaffLeave(
+        staff_id=staff.staff_id,
+        subject=subject,
+        leave_date=leave_date_obj,
+        reason=reason,
+        status="pending"
+    )
+
+    db.session.add(leave)
+    db.session.commit()
+
+    # ✅ EMAIL TO ALL ADMINS
+    email_admin_leave(
+        leave_id=leave.leave_id,
+        staff_name=user.name
+    )
+
+    return jsonify({
+        "message": "Leave request submitted",
+        "leave_id": leave.leave_id
+    }), 201
+

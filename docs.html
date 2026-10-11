@@ -1,0 +1,591 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Orphanage Management System — Project Documentation</title>
+  <meta name="description" content="Single-page documentation for the Orphanage Management System — covering project overview, tech stack, key features, and outcomes." />
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&family=Outfit:wght@400;600;700;800&display=swap" rel="stylesheet" />
+  <style>
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+    :root {
+      --bg: #0a0f1e;
+      --surface: #111827;
+      --card: #161d30;
+      --border: rgba(99, 102, 241, 0.18);
+      --accent: #6366f1;
+      --accent2: #8b5cf6;
+      --accent3: #06b6d4;
+      --gold: #f59e0b;
+      --green: #10b981;
+      --pink: #ec4899;
+      --text: #f1f5f9;
+      --muted: #94a3b8;
+      --radius: 16px;
+    }
+
+    html { scroll-behavior: smooth; }
+
+    body {
+      font-family: 'Inter', sans-serif;
+      background: var(--bg);
+      color: var(--text);
+      min-height: 100vh;
+      overflow-x: hidden;
+    }
+
+    body::before {
+      content: '';
+      position: fixed;
+      inset: 0;
+      background:
+        radial-gradient(ellipse 80% 60% at 20% 10%, rgba(99,102,241,0.12) 0%, transparent 60%),
+        radial-gradient(ellipse 60% 50% at 80% 80%, rgba(139,92,246,0.10) 0%, transparent 55%),
+        radial-gradient(ellipse 40% 40% at 50% 50%, rgba(6,182,212,0.05) 0%, transparent 60%);
+      pointer-events: none;
+      z-index: 0;
+    }
+
+    .wrapper {
+      position: relative;
+      z-index: 1;
+      max-width: 960px;
+      margin: 0 auto;
+      padding: 60px 24px 80px;
+    }
+
+    .hero { text-align: center; margin-bottom: 72px; }
+
+    .badge {
+      display: inline-flex;
+      align-items: center;
+      gap: 8px;
+      background: rgba(99,102,241,0.15);
+      border: 1px solid var(--border);
+      border-radius: 999px;
+      padding: 6px 18px;
+      font-size: 0.78rem;
+      font-weight: 600;
+      color: #a5b4fc;
+      text-transform: uppercase;
+      letter-spacing: 0.08em;
+      margin-bottom: 28px;
+      animation: fadeDown 0.6s ease both;
+    }
+
+    .badge-dot {
+      width: 7px; height: 7px;
+      border-radius: 50%;
+      background: var(--accent);
+      box-shadow: 0 0 8px var(--accent);
+      animation: pulse 2s infinite;
+    }
+
+    .hero h1 {
+      font-family: 'Outfit', sans-serif;
+      font-size: clamp(2.2rem, 6vw, 3.6rem);
+      font-weight: 800;
+      line-height: 1.12;
+      background: linear-gradient(135deg, #e0e7ff 0%, #a5b4fc 40%, #818cf8 70%, #c4b5fd 100%);
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
+      background-clip: text;
+      margin-bottom: 20px;
+      animation: fadeDown 0.7s 0.1s ease both;
+    }
+
+    .hero-sub {
+      font-size: 1.05rem;
+      color: var(--muted);
+      max-width: 560px;
+      margin: 0 auto 36px;
+      line-height: 1.7;
+      animation: fadeDown 0.7s 0.2s ease both;
+    }
+
+    .hero-meta {
+      display: flex;
+      justify-content: center;
+      flex-wrap: wrap;
+      gap: 12px;
+      animation: fadeDown 0.7s 0.3s ease both;
+    }
+
+    .hero-chip {
+      display: flex;
+      align-items: center;
+      gap: 6px;
+      background: var(--card);
+      border: 1px solid var(--border);
+      border-radius: 10px;
+      padding: 8px 16px;
+      font-size: 0.82rem;
+      font-weight: 500;
+      color: var(--muted);
+    }
+
+    .divider {
+      height: 1px;
+      background: linear-gradient(90deg, transparent, var(--border), transparent);
+      margin: 0 0 64px;
+    }
+
+    .section { margin-bottom: 64px; }
+
+    .section-label {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      margin-bottom: 28px;
+    }
+
+    .section-num {
+      width: 36px; height: 36px;
+      border-radius: 10px;
+      background: linear-gradient(135deg, var(--accent), var(--accent2));
+      display: flex; align-items: center; justify-content: center;
+      font-size: 0.75rem;
+      font-weight: 700;
+      color: #fff;
+      flex-shrink: 0;
+    }
+
+    .section-title {
+      font-family: 'Outfit', sans-serif;
+      font-size: 1.45rem;
+      font-weight: 700;
+      color: var(--text);
+    }
+
+    .overview-card {
+      background: var(--card);
+      border: 1px solid var(--border);
+      border-radius: var(--radius);
+      padding: 32px 36px;
+      line-height: 1.8;
+      color: #cbd5e1;
+      font-size: 0.97rem;
+      position: relative;
+      overflow: hidden;
+    }
+
+    .overview-card::before {
+      content: '';
+      position: absolute;
+      top: 0; left: 0; right: 0;
+      height: 3px;
+      background: linear-gradient(90deg, var(--accent), var(--accent2), var(--accent3));
+    }
+
+    .overview-card p + p { margin-top: 14px; }
+
+    .tech-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
+      gap: 16px;
+    }
+
+    .tech-card {
+      background: var(--card);
+      border: 1px solid var(--border);
+      border-radius: 14px;
+      padding: 22px 20px;
+      transition: transform 0.25s, border-color 0.25s, box-shadow 0.25s;
+      cursor: default;
+    }
+
+    .tech-card:hover {
+      transform: translateY(-4px);
+      border-color: rgba(99,102,241,0.45);
+      box-shadow: 0 12px 32px rgba(99,102,241,0.12);
+    }
+
+    .tech-icon { font-size: 1.8rem; margin-bottom: 10px; }
+    .tech-name { font-weight: 700; font-size: 0.95rem; margin-bottom: 4px; color: var(--text); }
+    .tech-role { font-size: 0.78rem; color: var(--muted); }
+
+    .tech-pill {
+      display: inline-block;
+      margin-top: 8px;
+      font-size: 0.7rem;
+      font-weight: 600;
+      padding: 3px 10px;
+      border-radius: 999px;
+    }
+
+    .pill-fe  { background: rgba(99,102,241,0.18); color: #a5b4fc; }
+    .pill-be  { background: rgba(16,185,129,0.18); color: #6ee7b7; }
+    .pill-db  { background: rgba(245,158,11,0.18); color: #fcd34d; }
+    .pill-lib { background: rgba(236,72,153,0.18); color: #f9a8d4; }
+
+    .features-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fill, minmax(270px, 1fr));
+      gap: 18px;
+    }
+
+    .feature-card {
+      background: var(--card);
+      border: 1px solid var(--border);
+      border-radius: 14px;
+      padding: 24px 22px;
+      transition: transform 0.25s, border-color 0.25s, box-shadow 0.25s;
+    }
+
+    .feature-card:hover {
+      transform: translateY(-4px);
+      border-color: rgba(99,102,241,0.40);
+      box-shadow: 0 10px 28px rgba(99,102,241,0.10);
+    }
+
+    .feature-icon-wrap {
+      width: 44px; height: 44px;
+      border-radius: 12px;
+      display: flex; align-items: center; justify-content: center;
+      font-size: 1.3rem;
+      margin-bottom: 14px;
+    }
+
+    .c1 { background: rgba(99,102,241,0.18); }
+    .c2 { background: rgba(16,185,129,0.18); }
+    .c3 { background: rgba(245,158,11,0.18); }
+    .c4 { background: rgba(236,72,153,0.18); }
+    .c5 { background: rgba(6,182,212,0.18); }
+    .c6 { background: rgba(139,92,246,0.18); }
+    .c7 { background: rgba(239,68,68,0.18); }
+    .c8 { background: rgba(34,197,94,0.18); }
+
+    .feature-title { font-weight: 700; font-size: 0.97rem; margin-bottom: 8px; }
+    .feature-desc { font-size: 0.83rem; color: var(--muted); line-height: 1.65; }
+
+    .roles-row {
+      display: grid;
+      grid-template-columns: repeat(auto-fill, minmax(210px, 1fr));
+      gap: 14px;
+    }
+
+    .role-chip {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      background: var(--card);
+      border: 1px solid var(--border);
+      border-radius: 12px;
+      padding: 14px 18px;
+      font-size: 0.88rem;
+      font-weight: 600;
+    }
+
+    .role-dot { width: 10px; height: 10px; border-radius: 50%; flex-shrink: 0; }
+
+    .outcome-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fill, minmax(220px, 1fr));
+      gap: 16px;
+    }
+
+    .outcome-card {
+      background: var(--card);
+      border: 1px solid var(--border);
+      border-radius: 14px;
+      padding: 28px 24px;
+      text-align: center;
+      transition: transform 0.25s, box-shadow 0.25s;
+    }
+
+    .outcome-card:hover {
+      transform: translateY(-4px);
+      box-shadow: 0 12px 32px rgba(99,102,241,0.12);
+    }
+
+    .outcome-num {
+      font-family: 'Outfit', sans-serif;
+      font-size: 2.2rem;
+      font-weight: 800;
+      background: linear-gradient(135deg, var(--accent), var(--accent2));
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
+      background-clip: text;
+      line-height: 1;
+      margin-bottom: 8px;
+    }
+
+    .outcome-label { font-size: 0.84rem; color: var(--muted); font-weight: 500; }
+
+    .impact-list { margin-top: 28px; display: flex; flex-direction: column; gap: 12px; }
+
+    .impact-item {
+      display: flex;
+      align-items: flex-start;
+      gap: 12px;
+      background: var(--card);
+      border: 1px solid var(--border);
+      border-radius: 12px;
+      padding: 16px 20px;
+      font-size: 0.88rem;
+      color: #cbd5e1;
+      line-height: 1.6;
+    }
+
+    .impact-check {
+      flex-shrink: 0;
+      width: 22px; height: 22px;
+      border-radius: 50%;
+      background: rgba(16,185,129,0.18);
+      display: flex; align-items: center; justify-content: center;
+      color: #10b981;
+      font-size: 0.75rem;
+      font-weight: 700;
+      margin-top: 1px;
+    }
+
+    .footer {
+      text-align: center;
+      margin-top: 72px;
+      padding-top: 32px;
+      border-top: 1px solid var(--border);
+      color: var(--muted);
+      font-size: 0.82rem;
+    }
+
+    .footer strong { color: #a5b4fc; }
+
+    @keyframes fadeDown {
+      from { opacity: 0; transform: translateY(-16px); }
+      to   { opacity: 1; transform: translateY(0); }
+    }
+
+    @keyframes pulse {
+      0%, 100% { opacity: 1; }
+      50%       { opacity: 0.4; }
+    }
+
+    .fade-in {
+      opacity: 0;
+      transform: translateY(20px);
+      animation: fadeIn 0.6s ease forwards;
+    }
+
+    @keyframes fadeIn {
+      to { opacity: 1; transform: translateY(0); }
+    }
+
+    .delay-1 { animation-delay: 0.05s; }
+    .delay-2 { animation-delay: 0.15s; }
+    .delay-3 { animation-delay: 0.25s; }
+    .delay-4 { animation-delay: 0.35s; }
+  </style>
+</head>
+<body>
+<div class="wrapper">
+
+  <header class="hero">
+    <div class="badge">
+      <span class="badge-dot"></span>
+      Project Documentation
+    </div>
+    <h1>Orphanage Management<br>System</h1>
+    <p class="hero-sub">
+      A full-stack web application to digitise and streamline the end-to-end operations of an orphanage — from child records to donations and adoptions.
+    </p>
+    <div class="hero-meta">
+      <span class="hero-chip">📅 2025–2026</span>
+      <span class="hero-chip">🌐 Full-Stack Web App</span>
+      <span class="hero-chip">🔐 Role-Based Access</span>
+      <span class="hero-chip">🗄️ MySQL · Flask · React</span>
+    </div>
+  </header>
+
+  <div class="divider"></div>
+
+  <!-- 01 OVERVIEW -->
+  <section class="section fade-in delay-1" id="overview">
+    <div class="section-label">
+      <div class="section-num">01</div>
+      <h2 class="section-title">Overview</h2>
+    </div>
+    <div class="overview-card">
+      <p>The <strong>Orphanage Management System (OMS)</strong> is a comprehensive web-based platform built to replace manual, paper-based orphanage operations with a secure, centralised digital solution. It brings all stakeholders — administrators, staff, donors, and prospective adoptive parents — onto a single system with clearly scoped permissions.</p>
+      <p>The system manages the complete lifecycle of a child in the orphanage: admission, health &amp; education tracking, performance reporting, and ultimately adoption. It simultaneously handles staff scheduling, leave management, task assignment, performance evaluation, and donation processing (monetary, food, clothing).</p>
+      <p>Built with a decoupled <strong>REST API backend</strong> (Flask) and a <strong>React SPA frontend</strong> (Vite), the application enforces strict role-based authentication via Flask-Session, ensuring each user type sees only the data and actions relevant to their role.</p>
+    </div>
+  </section>
+
+  <!-- 02 TECH STACK -->
+  <section class="section fade-in delay-2" id="tech">
+    <div class="section-label">
+      <div class="section-num">02</div>
+      <h2 class="section-title">Tech Stack</h2>
+    </div>
+    <div class="tech-grid">
+      <div class="tech-card">
+        <div class="tech-icon">⚛️</div>
+        <div class="tech-name">React 19</div>
+        <div class="tech-role">UI Framework</div>
+        <span class="tech-pill pill-fe">Frontend</span>
+      </div>
+      <div class="tech-card">
+        <div class="tech-icon">⚡</div>
+        <div class="tech-name">Vite</div>
+        <div class="tech-role">Build tool &amp; dev server</div>
+        <span class="tech-pill pill-fe">Frontend</span>
+      </div>
+      <div class="tech-card">
+        <div class="tech-icon">🔀</div>
+        <div class="tech-name">React Router v7</div>
+        <div class="tech-role">Client-side routing</div>
+        <span class="tech-pill pill-fe">Frontend</span>
+      </div>
+      <div class="tech-card">
+        <div class="tech-icon">📊</div>
+        <div class="tech-name">Chart.js / Recharts</div>
+        <div class="tech-role">Analytics &amp; dashboards</div>
+        <span class="tech-pill pill-lib">Library</span>
+      </div>
+      <div class="tech-card">
+        <div class="tech-icon">🌐</div>
+        <div class="tech-name">Axios</div>
+        <div class="tech-role">HTTP client</div>
+        <span class="tech-pill pill-lib">Library</span>
+      </div>
+      <div class="tech-card">
+        <div class="tech-icon">🐍</div>
+        <div class="tech-name">Flask</div>
+        <div class="tech-role">REST API backend</div>
+        <span class="tech-pill pill-be">Backend</span>
+      </div>
+      <div class="tech-card">
+        <div class="tech-icon">🔌</div>
+        <div class="tech-name">Flask-SQLAlchemy</div>
+        <div class="tech-role">ORM &amp; DB models</div>
+        <span class="tech-pill pill-be">Backend</span>
+      </div>
+      <div class="tech-card">
+        <div class="tech-icon">🛡️</div>
+        <div class="tech-name">Flask-Session</div>
+        <div class="tech-role">Auth &amp; session mgmt</div>
+        <span class="tech-pill pill-be">Backend</span>
+      </div>
+      <div class="tech-card">
+        <div class="tech-icon">🗄️</div>
+        <div class="tech-name">MySQL</div>
+        <div class="tech-role">Relational database</div>
+        <span class="tech-pill pill-db">Database</span>
+      </div>
+    </div>
+  </section>
+
+  <!-- 03 KEY FEATURES -->
+  <section class="section fade-in delay-3" id="features">
+    <div class="section-label">
+      <div class="section-num">03</div>
+      <h2 class="section-title">Key Features</h2>
+    </div>
+    <p style="color:var(--muted);font-size:0.88rem;margin-bottom:12px;">Four user roles, each with a scoped dashboard:</p>
+    <div class="roles-row">
+      <div class="role-chip"><span class="role-dot" style="background:#6366f1;box-shadow:0 0 6px #6366f1"></span>Admin</div>
+      <div class="role-chip"><span class="role-dot" style="background:#10b981;box-shadow:0 0 6px #10b981"></span>Staff</div>
+      <div class="role-chip"><span class="role-dot" style="background:#f59e0b;box-shadow:0 0 6px #f59e0b"></span>Donor</div>
+      <div class="role-chip"><span class="role-dot" style="background:#ec4899;box-shadow:0 0 6px #ec4899"></span>Person (Adoptive)</div>
+    </div>
+    <div class="features-grid" style="margin-top:24px;">
+      <div class="feature-card">
+        <div class="feature-icon-wrap c1">👶</div>
+        <div class="feature-title">Child Management</div>
+        <div class="feature-desc">Add, update, and track children — health status, education level, yearly performance (marks, attendance, remarks), and profile images. Adoption status tracked automatically.</div>
+      </div>
+      <div class="feature-card">
+        <div class="feature-icon-wrap c2">👨‍👩‍👧</div>
+        <div class="feature-title">Adoption Workflow</div>
+        <div class="feature-desc">Prospective parents browse available children, submit adoption requests, and schedule meetings. Admins review, approve or reject with official remarks.</div>
+      </div>
+      <div class="feature-card">
+        <div class="feature-icon-wrap c3">💰</div>
+        <div class="feature-title">Donation Management</div>
+        <div class="feature-desc">Donors contribute money, food, or clothing. Admins track donation status, log usage (education, medical, food, salary), and maintain financial transparency.</div>
+      </div>
+      <div class="feature-card">
+        <div class="feature-icon-wrap c4">👩‍💼</div>
+        <div class="feature-title">Staff Management</div>
+        <div class="feature-desc">Admin manages staff profiles, designations, salary, and performance ratings. Staff can apply for leaves and view assigned tasks with due dates.</div>
+      </div>
+      <div class="feature-card">
+        <div class="feature-icon-wrap c5">🔔</div>
+        <div class="feature-title">Notification System</div>
+        <div class="feature-desc">In-app and email notifications keep all users informed of request approvals, task updates, and donation confirmations in real time.</div>
+      </div>
+      <div class="feature-card">
+        <div class="feature-icon-wrap c6">📈</div>
+        <div class="feature-title">Analytics Dashboard</div>
+        <div class="feature-desc">Interactive charts (Chart.js + Recharts) visualise donation trends, admission stats, staff performance, and activity logs for data-driven decisions.</div>
+      </div>
+      <div class="feature-card">
+        <div class="feature-icon-wrap c7">🎉</div>
+        <div class="feature-title">Activities Tracking</div>
+        <div class="feature-desc">Log orphanage activities — sports, cultural, and national events — with date, type, and description for programme records.</div>
+      </div>
+      <div class="feature-card">
+        <div class="feature-icon-wrap c8">🔐</div>
+        <div class="feature-title">Secure Auth &amp; RBAC</div>
+        <div class="feature-desc">Session-based authentication with role decorators protects every API endpoint. Each portal is completely isolated by user role.</div>
+      </div>
+    </div>
+  </section>
+
+  <!-- 04 OUTCOME -->
+  <section class="section fade-in delay-4" id="outcome">
+    <div class="section-label">
+      <div class="section-num">04</div>
+      <h2 class="section-title">Outcome &amp; Impact</h2>
+    </div>
+    <div class="outcome-grid">
+      <div class="outcome-card">
+        <div class="outcome-num">4</div>
+        <div class="outcome-label">Role-Based Portals<br>(Admin, Staff, Donor, Person)</div>
+      </div>
+      <div class="outcome-card">
+        <div class="outcome-num">10+</div>
+        <div class="outcome-label">REST API Modules<br>covering every domain</div>
+      </div>
+      <div class="outcome-card">
+        <div class="outcome-num">15+</div>
+        <div class="outcome-label">Database Tables<br>with relational integrity</div>
+      </div>
+      <div class="outcome-card">
+        <div class="outcome-num">0</div>
+        <div class="outcome-label">Paper-based processes<br>remaining post-deployment</div>
+      </div>
+    </div>
+    <div class="impact-list">
+      <div class="impact-item">
+        <span class="impact-check">✓</span>
+        Eliminated manual record-keeping — all child, staff, and donation data is centralised in a secure MySQL database, dramatically reducing data loss and duplication.
+      </div>
+      <div class="impact-item">
+        <span class="impact-check">✓</span>
+        Accelerated the adoption process through a transparent, trackable digital workflow with built-in meeting scheduling and admin review.
+      </div>
+      <div class="impact-item">
+        <span class="impact-check">✓</span>
+        Increased donor confidence by providing real-time donation status tracking and transparent usage reports (education, food, medical, salary).
+      </div>
+      <div class="impact-item">
+        <span class="impact-check">✓</span>
+        Improved staff accountability via task assignment, leave management, and performance evaluation accessible directly from their dashboard.
+      </div>
+      <div class="impact-item">
+        <span class="impact-check">✓</span>
+        Delivered a production-ready, decoupled architecture — the React SPA and Flask REST API can scale independently, enabling future mobile-app integration with zero backend changes.
+      </div>
+    </div>
+  </section>
+
+  <footer class="footer">
+    <p>Built with <strong>React · Flask · MySQL</strong> &nbsp;|&nbsp; Orphanage Management System &copy; 2026</p>
+  </footer>
+
+</div>
+</body>
+</html>

@@ -1,11 +1,14 @@
 import React, { useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { login } from "../../api/auth";
+import { useAuth } from "../../context/AuthContext";
 
 const Login = ({ setUserRole }) => {
   const navigate = useNavigate();
+  const { login: authLogin } = useAuth();
   const [formData, setFormData] = useState({ email: "", password: "" });
   const [error, setError] = useState("");
+  const [submitting, setSubmitting] = useState(false);
 
   const handleChange = (e) => {
     setFormData({ ...formData, [e.target.name]: e.target.value });
@@ -14,16 +17,21 @@ const Login = ({ setUserRole }) => {
   const handleSubmit = async (e) => {
     e.preventDefault();
     setError("");
+    setSubmitting(true);
     try {
       const res = await login(formData);
       const { token, user } = res.data;
 
-      localStorage.setItem("token", token);
-      localStorage.setItem("user", JSON.stringify(user));
-      setUserRole(user.role);
+      if (authLogin) {
+        authLogin(user, token);
+      } else {
+        localStorage.setItem("token", token);
+        localStorage.setItem("user", JSON.stringify(user));
+      }
 
-      // Role-based redirect
-      switch (user.role.toLowerCase()) {
+      if (setUserRole) setUserRole(user.role);
+
+      switch (user.role?.toLowerCase()) {
         case "admin":
           navigate("/admin/dashboard");
           break;
@@ -39,9 +47,15 @@ const Login = ({ setUserRole }) => {
         default:
           navigate("/login");
       }
-    } catch (err) {
+    } catch {
       setError("Invalid email or password");
+    } finally {
+      setSubmitting(false);
     }
+  };
+
+  const handleForgotPassword = () => {
+    navigate("/forgot-password");
   };
 
   return (
@@ -68,7 +82,17 @@ const Login = ({ setUserRole }) => {
             onChange={handleChange}
             required
           />
-          <button type="submit">Login</button>
+
+          {/* 🔹 Forgot Password */}
+          <div className="forgot-wrapper">
+            <span onClick={handleForgotPassword} className="forgot-link">
+              Forgot Password?
+            </span>
+          </div>
+
+          <button type="submit" disabled={submitting}>
+            {submitting ? "Logging in..." : "Login"}
+          </button>
         </form>
 
         <p className="signup-text">
@@ -102,25 +126,17 @@ const Login = ({ setUserRole }) => {
           width: 100%;
           box-shadow: 0 12px 28px rgba(0,0,0,0.15);
           text-align: center;
-          transition: transform 0.3s ease, box-shadow 0.3s ease;
-        }
-
-        .login-card:hover {
-          transform: translateY(-5px);
-          box-shadow: 0 16px 36px rgba(0,0,0,0.2);
         }
 
         .login-title {
           font-size: 28px;
           color: #c2410c;
           margin-bottom: 25px;
-          font-weight: 600;
         }
 
         .login-error {
           color: #ef4444;
           margin-bottom: 15px;
-          font-weight: 500;
         }
 
         .login-form {
@@ -133,14 +149,22 @@ const Login = ({ setUserRole }) => {
           padding: 14px;
           border-radius: 8px;
           border: 1px solid #f97316;
-          font-size: 16px;
-          outline: none;
-          transition: 0.3s;
         }
 
-        .login-form input:focus {
-          border-color: #c2410c;
-          box-shadow: 0 0 6px rgba(194,65,12,0.3);
+        .forgot-wrapper {
+          text-align: right;
+          margin-top: -5px;
+        }
+
+        .forgot-link {
+          font-size: 13px;
+          color: #f97316;
+          cursor: pointer;
+          font-weight: 500;
+        }
+
+        .forgot-link:hover {
+          text-decoration: underline;
         }
 
         .login-form button {
@@ -152,17 +176,20 @@ const Login = ({ setUserRole }) => {
           border: none;
           border-radius: 8px;
           cursor: pointer;
-          transition: 0.3s;
         }
 
-        .login-form button:hover {
+        .login-form button:disabled {
+          opacity: 0.6;
+          cursor: not-allowed;
+        }
+
+        .login-form button:hover:not(:disabled) {
           background: #c2410c;
         }
 
         .signup-text {
           margin-top: 20px;
           font-size: 14px;
-          color: #555;
         }
 
         .signup-link {
@@ -173,12 +200,6 @@ const Login = ({ setUserRole }) => {
 
         .signup-link:hover {
           text-decoration: underline;
-        }
-
-        @media (max-width: 480px) {
-          .login-card {
-            padding: 30px 20px;
-          }
         }
       `}</style>
     </div>

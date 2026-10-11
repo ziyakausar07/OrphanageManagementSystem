@@ -1,10 +1,8 @@
 import React, { useEffect, useState } from "react";
 import { getChildrenAdmin } from "../../api/children";
-import { useAuth } from "../../context/AuthContext";
 import { useNavigate } from "react-router-dom";
 
 export default function ChildrenDashboard() {
-  const { user } = useAuth();
   const [children, setChildren] = useState([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
