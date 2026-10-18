@@ -11,6 +11,7 @@ const SliderMenu = ({ user, onClose, logout }) => {
 
   const handleLogout = () => {
     localStorage.removeItem("token");
+    localStorage.removeItem("user");
     if (logout) logout();
     navigate("/login");
   };
@@ -22,56 +23,62 @@ const SliderMenu = ({ user, onClose, logout }) => {
         <div className="staff-avatar">
           {user?.name ? user.name.charAt(0).toUpperCase() : "U"}
         </div>
-        <div>
-          <p className="staff-name">{user?.name || "Staff User"}</p>
+        <div className="staff-profile-text">
+          <p className="staff-name">{user?.name || "Staff Member"}</p>
           <p className="staff-email">{user?.email || "staff@email.com"}</p>
+          <span className="staff-role-pill">{user?.role || "STAFF"}</span>
         </div>
       </div>
 
       <div className="divider" />
 
       {/* MENU BUTTONS */}
-      <button className="slider-btn" onClick={() => go("/staff/message")}>
-        📩 Message Box
-      </button>
-      <button className="slider-btn" onClick={() => go("/staff/leave-request")}>
-        📝 Leave Form
-      </button>
-      <button className="slider-btn" onClick={() => go("/staff/daily-work")}>
-        📋 Daily Work
-      </button>
-      <button className="slider-btn" onClick={() => go("/staff/profile")}>
-        👤 Profile
-      </button>
+      <div className="menu-links">
+        <button className="slider-btn" onClick={() => go("/staff/message")}>
+          <span className="slider-btn-icon">📩</span> Message Box
+        </button>
+        <button className="slider-btn" onClick={() => go("/staff/leave-request")}>
+          <span className="slider-btn-icon">📝</span> Leave Application
+        </button>
+        <button className="slider-btn" onClick={() => go("/staff/daily-work")}>
+          <span className="slider-btn-icon">📋</span> Daily Work / Tasks
+        </button>
+        <button className="slider-btn" onClick={() => go("/staff/profile")}>
+          <span className="slider-btn-icon">👤</span> My Profile
+        </button>
+      </div>
+
+      <div className="divider" />
 
       <button className="slider-btn logout-btn" onClick={handleLogout}>
-        🚪 Logout
+        <span className="slider-btn-icon">🚪</span> Sign Out
       </button>
 
       {/* CSS */}
       <style>{`
         .staff-slider {
           position: absolute;
-          top: 60px;
-          right: 10px;
-          width: 240px;
-          background: #fff7ed;
-          padding: 18px;
-          border-radius: 14px;
-          box-shadow: 0 10px 30px rgba(0,0,0,0.25);
+          top: 54px;
+          right: 0;
+          width: 270px;
+          background: #ffffff;
+          padding: 20px;
+          border-radius: 18px;
+          border: 1px solid rgba(254, 215, 170, 0.8);
+          box-shadow: 0 20px 40px -10px rgba(249, 115, 22, 0.25), 0 10px 15px -5px rgba(0, 0, 0, 0.05);
           z-index: 1000;
-          animation: slideIn 0.25s ease;
-          font-family: 'Poppins', sans-serif;
+          animation: slideIn 0.2s cubic-bezier(0.16, 1, 0.3, 1);
+          font-family: 'Plus Jakarta Sans', sans-serif;
         }
 
         @keyframes slideIn {
           from {
             opacity: 0;
-            transform: translateY(-10px);
+            transform: translateY(-8px) scale(0.98);
           }
           to {
             opacity: 1;
-            transform: translateY(0);
+            transform: translateY(0) scale(1);
           }
         }
 
@@ -83,61 +90,104 @@ const SliderMenu = ({ user, onClose, logout }) => {
         }
 
         .staff-avatar {
-          width: 45px;
-          height: 45px;
+          width: 44px;
+          height: 44px;
           border-radius: 50%;
-          background: #f97316;
-          color: #fff;
+          background: linear-gradient(135deg, #f97316 0%, #ea580c 100%);
+          color: white;
           display: flex;
           align-items: center;
           justify-content: center;
-          font-weight: bold;
+          font-family: 'Outfit', sans-serif;
+          font-weight: 700;
           font-size: 18px;
+          flex-shrink: 0;
+          box-shadow: 0 4px 10px rgba(249, 115, 22, 0.3);
+        }
+
+        .staff-profile-text {
+          overflow: hidden;
         }
 
         .staff-name {
+          font-family: 'Outfit', sans-serif;
+          font-weight: 700;
+          font-size: 15px;
+          color: #1e293b;
           margin: 0;
-          font-weight: 600;
-          color: #9a3412;
+          white-space: nowrap;
+          overflow: hidden;
+          text-overflow: ellipsis;
         }
 
         .staff-email {
-          margin: 0;
           font-size: 12px;
-          color: #555;
+          color: #94a3b8;
+          margin: 0 0 4px 0;
+          white-space: nowrap;
+          overflow: hidden;
+          text-overflow: ellipsis;
+        }
+
+        .staff-role-pill {
+          display: inline-block;
+          font-size: 10px;
+          font-weight: 700;
+          padding: 2px 8px;
+          border-radius: 12px;
+          background: #eff6ff;
+          color: #2563eb;
+          text-transform: uppercase;
         }
 
         .divider {
           height: 1px;
-          background: #fed7aa;
-          margin: 12px 0;
+          background: #f1f5f9;
+          margin: 10px 0;
+        }
+
+        .menu-links {
+          display: flex;
+          flex-direction: column;
+          gap: 4px;
         }
 
         .slider-btn {
           width: 100%;
-          padding: 10px 12px;
-          background: #f97316;
-          color: #fff;
+          display: flex;
+          align-items: center;
+          gap: 10px;
+          padding: 10px 14px;
+          background: transparent;
           border: none;
-          border-radius: 8px;
-          margin-top: 8px;
+          border-radius: 10px;
+          font-family: 'Plus Jakarta Sans', sans-serif;
+          font-size: 13.5px;
+          font-weight: 600;
+          color: #475569;
           cursor: pointer;
+          transition: all 0.15s ease;
           text-align: left;
-          font-weight: 500;
-          transition: background 0.2s, transform 0.2s;
         }
 
         .slider-btn:hover {
-          background: #c2410c;
+          background: #fff7ed;
+          color: #ea580c;
           transform: translateX(3px);
         }
 
+        .slider-btn-icon {
+          font-size: 16px;
+        }
+
         .logout-btn {
-          background: #ef4444;
+          color: #ef4444;
+          font-weight: 700;
         }
 
         .logout-btn:hover {
-          background: #b91c1c;
+          background: #fef2f2;
+          color: #dc2626;
         }
       `}</style>
     </div>
