@@ -10,4 +10,4 @@ export const getAdoptionRequests = () =>
   api.get("/adoption/adoptions_status");
 
 export const updateAdoptionStatus = (id, data) =>
-  api.post(`/adoption/adoption/${id}`, data);
+  api.put(`/admin/adoption/${id}`, data);

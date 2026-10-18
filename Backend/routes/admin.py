@@ -30,11 +30,11 @@ def dashboard():
         .scalar() or 0
 
     monthly = db.session.query(func.sum(Donation.amount))\
-        .filter(func.month(Donation.donation_date) == today.month)\
+        .filter(func.extract("month", Donation.donation_date) == today.month, func.extract("year", Donation.donation_date) == today.year)\
         .scalar() or 0
 
     yearly = db.session.query(func.sum(Donation.amount))\
-        .filter(func.year(Donation.donation_date) == today.year)\
+        .filter(func.extract("year", Donation.donation_date) == today.year)\
         .scalar() or 0
 
     return jsonify({
@@ -74,16 +74,25 @@ def update_adoption(id):
     if request.method == "OPTIONS":
         return jsonify({"ok": True}), 200
 
-    status = request.json.get("status")
-    adoption = AdoptionRequest.query.get_or_404(id)
-    adoption.status = status
+    data = request.json or {}
+    status = data.get("status")
+    admin_remark = data.get("admin_remark")
 
-    if status == "approved":
+    adoption = AdoptionRequest.query.get_or_404(id)
+    if status:
+        adoption.status = status
+    if admin_remark is not None:
+        adoption.admin_remark = admin_remark
+
+    if status == "approved" and adoption.child:
         adoption.child.status = "adopted"
 
     db.session.commit()
 
-    email_user_adoption_status(adoption.user.email, adoption.child.name, status)
+    try:
+        email_user_adoption_status(adoption.user.email, adoption.child.name, status)
+    except Exception as e:
+        print("Email sending error:", e)
 
     return jsonify({"message": "Adoption status updated"}), 200
 
@@ -303,7 +312,7 @@ def orphanage_performance():
         }), 200
 
     except Exception as e:
-        print("🔥 ORPHANAGE PERFORMANCE ERROR:", e)
+        print("[ERROR] ORPHANAGE PERFORMANCE ERROR:", e)
         return jsonify({"error": str(e)}), 500
 
 
@@ -351,7 +360,7 @@ def get_children_admin():
         return jsonify(result), 200
 
     except Exception as e:
-        print("🔥 ADMIN CHILDREN FETCH ERROR:", e)
+        print("[ERROR] ADMIN CHILDREN FETCH ERROR:", e)
         return jsonify({"error": str(e)}), 500
 
 

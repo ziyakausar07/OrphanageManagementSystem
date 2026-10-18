@@ -67,7 +67,7 @@ def get_notifications(user_id: int):
                 "type": n.type,
                 "status": n.status,
                 "role": n.role,   # ✅ role from orphanage_users
-                "created_at": n.created_at.isoformat()
+                "created_at": n.created_at.isoformat() if n.created_at else None
             }
             for n in notifications
         ]

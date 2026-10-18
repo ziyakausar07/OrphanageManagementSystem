@@ -2,9 +2,10 @@ from functools import wraps
 from flask import request, jsonify
 import jwt
 import os
+from config import Config
 from models import User
 
-SECRET_KEY = os.getenv("SECRET_KEY", "super-secret-key")
+SECRET_KEY = getattr(Config, "SECRET_KEY", "orphanage_secret")
 
 def role_required(required_role):
     def decorator(fn):

@@ -1,4 +1,5 @@
 from flask import Blueprint, request, jsonify
+from datetime import datetime, date
 from extensions import db
 from models import Donation, Donor, User
 from services.email_service import email_admin_donation
@@ -24,6 +25,17 @@ def add_donation():
         db.session.add(donor)
         db.session.commit()
 
+    donation_date_raw = data.get("donation_date")
+    if isinstance(donation_date_raw, str):
+        try:
+            donation_date = datetime.strptime(donation_date_raw, "%Y-%m-%d").date()
+        except ValueError:
+            donation_date = date.today()
+    elif isinstance(donation_date_raw, (date, datetime)):
+        donation_date = donation_date_raw
+    else:
+        donation_date = date.today()
+
     # 3️⃣ Create donation
     donation = Donation(
         donor_id=donor.donor_id,
@@ -36,23 +48,31 @@ def add_donation():
         clothes_type=data.get("clothes_type"),
         other_details=data.get("other_details"),
         message=data.get("message"),
-        donation_date=data.get("donation_date"),
+        donation_date=donation_date,
         status="pending"
     )
-    # 4️⃣ Send email to admin
-    email_admin_donation(
-        donation_id=donation.donation_id,
-        donor_name=user.name,
-        donation_type=donation.donation_type,
-        donation_date=donation.donation_date
-    )
+    db.session.add(donation)
+    db.session.commit()
 
-    return jsonify({"message": "Donation submitted successfully"}), 201
+    # 4️⃣ Send email to admin
+    try:
+        email_admin_donation(
+            donation_id=donation.donation_id,
+            donor_name=user.name,
+            donation_type=donation.donation_type,
+            donation_date=donation.donation_date
+        )
+    except Exception as e:
+        print("Email notification error:", e)
+
+    return jsonify({"message": "Donation submitted successfully", "donation_id": donation.donation_id}), 201
+
 @donation_bp.route("/messages/<int:user_id>", methods=["GET"])
 def donor_messages(user_id):
-    donor = User.query.get(user_id).donor
-    if not donor:
-        return jsonify({"error": "Donor not found"}), 404
+    user = User.query.get(user_id)
+    if not user or not user.donor:
+        return jsonify({"messages": []})
+    donor = user.donor
 
     donations = donor.donations
     messages = [

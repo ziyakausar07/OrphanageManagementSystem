@@ -110,9 +110,12 @@ def forgot_password():
 
     token = serializer.dumps(email, salt="password-reset")
 
-    email_forgot_password(user.email, token)
+    try:
+        email_forgot_password(user.email, token)
+        print("[OK] FORGOT PASSWORD EMAIL SENT")
+    except Exception as e:
+        print("[WARN] Forgot password email failed to send:", e)
 
-    print("✅ FORGOT PASSWORD EMAIL SENT")
     print("EMAIL:", user.email)
     print("TOKEN:", token)
 

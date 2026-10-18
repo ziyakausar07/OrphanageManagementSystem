@@ -32,16 +32,28 @@ def create_app():
     # Initialize extensions
     db.init_app(app)
     
-    # Enable CORS
+    # Enable CORS (Supports Localhost, Vercel, and custom FRONTEND_URL)
+    frontend_origins = [
+        "http://localhost:5173",
+        "http://127.0.0.1:5173",
+        r"https://.*\.vercel\.app"
+    ]
+    custom_frontend = os.environ.get("FRONTEND_URL")
+    if custom_frontend:
+        frontend_origins.append(custom_frontend)
+
     CORS(
         app,
-        resources={r"/api/*": {"origins": "http://localhost:5173"}},
+        resources={r"/api/*": {"origins": frontend_origins}},
         supports_credentials=True
     )
 
     # Create tables
     with app.app_context():
-        db.create_all()
+        try:
+            db.create_all()
+        except Exception as e:
+            print("[WARN] db.create_all() failed during startup:", e)
 
     # Register blueprints
     app.register_blueprint(auth_bp, url_prefix="/api/auth")
@@ -61,4 +73,7 @@ def create_app():
 app = create_app()
 
 if __name__ == "__main__":
-    app.run(debug=True, host="127.0.0.1", port=5000)
+    port = int(os.environ.get("PORT", 5000))
+    debug = os.environ.get("FLASK_DEBUG", "False").lower() in ["true", "1"]
+    app.run(debug=debug, host="0.0.0.0", port=port)
+

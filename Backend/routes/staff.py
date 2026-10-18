@@ -87,7 +87,7 @@ def get_tasks(user_id):
                 "description": t.description,
                 "status": t.status,
                 "due_date": t.due_date.strftime("%Y-%m-%d") if t.due_date else None,
-                "created_at": t.created_at.strftime("%Y-%m-%d")
+                "created_at": t.created_at.strftime("%Y-%m-%d") if t.created_at else None
             } for t in tasks
         ]
     })
