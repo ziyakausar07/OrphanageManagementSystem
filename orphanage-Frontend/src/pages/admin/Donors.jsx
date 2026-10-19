@@ -232,7 +232,7 @@ export default function Donors() {
               </div>
             ))
           ) : (
-            <p>Loading donors...</p>
+            <p style={{ textAlign: "center", color: "#64748b", padding: "30px 0" }}>No donor records found.</p>
           )}
         </div>
       </div>

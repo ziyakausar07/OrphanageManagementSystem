@@ -1,6 +1,7 @@
 import React, { useEffect, useState } from "react";
 import { useAuth } from "../../context/AuthContext";
 import { getNotifications, markNotificationRead } from "../../api/notification";
+import LoadingScreen from "../../components/LoadingScreen";
 
 const DonorMessages = () => {
   const { user } = useAuth();
@@ -48,7 +49,7 @@ const DonorMessages = () => {
   };
 
   /* ===== LOGIN / LOADING ===== */
-  if (!user || loading) {
+  if (!user) {
     return (
       <div
         style={{
@@ -61,9 +62,12 @@ const DonorMessages = () => {
           fontSize: 18,
         }}
       >
-        {!user ? "Please login to view messages." : "Loading..."}
+        Please login to view messages.
       </div>
     );
+  }
+  if (loading) {
+    return <LoadingScreen message="Loading messages..." />;
   }
 
   return (

@@ -35,7 +35,7 @@ def get_children():
             "health_status": c.health_status,
             "overall_performance": c.overall_performance,
             "status": c.status,
-            "image": f"children/{c.child_id}.jpg",  # ya actual image filename
+            "image": f"children/{c.image.replace('children/', '')}" if c.image else None,
             "performances": performances
         })
 
@@ -96,7 +96,7 @@ def get_children_admin():
             "health_status": c.health_status,
             "overall_performance": c.overall_performance,
             "status": c.status,
-            "image": f"children/{c.image}" if c.image else None,  # ✅ correct path
+            "image": f"children/{c.image.replace('children/', '')}" if c.image else None,  # ✅ correct path
             "performances": performances
         })
 

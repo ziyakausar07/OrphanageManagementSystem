@@ -3,6 +3,7 @@ import { useAuth } from "../../context/AuthContext";
 import SliderMenu from "../../components/SliderMenu"; // Staff menu
 import Card from "../../components/Card";
 import { getDashboardData } from "../../api/staff";
+import LoadingScreen from "../../components/LoadingScreen";
 import {
   BarChart,
   Bar,
@@ -66,7 +67,7 @@ const Dashboard = () => {
     { name: "Pending Tasks", value: 3 },
   ];
 
-  if (loading) return <p style={{ textAlign: "center" }}>Loading dashboard...</p>;
+  if (loading) return <LoadingScreen message="Loading dashboard..." />;
   if (error) return <p style={{ textAlign: "center" }}>{error}</p>;
 
   return (

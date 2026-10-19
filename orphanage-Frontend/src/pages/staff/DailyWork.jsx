@@ -1,6 +1,7 @@
 import React, { useEffect, useState, useCallback } from "react";
 import { useAuth } from "../../context/AuthContext";
 import { getTasks, addTask, deleteTask, updateTaskStatus } from "../../api/staff";
+import LoadingScreen from "../../components/LoadingScreen";
 
 const DailyWork = () => {
   const { user, loading } = useAuth();
@@ -80,7 +81,7 @@ const DailyWork = () => {
   };
 
   if (loading) {
-    return <div style={{ textAlign: "center", marginTop: 60 }}>Loading...</div>;
+    return <LoadingScreen message="Loading tasks..." />;
   }
 
   return (

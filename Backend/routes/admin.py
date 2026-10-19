@@ -353,7 +353,7 @@ def get_children_admin():
                 "health_status": c.health_status,
                 "overall_performance": c.overall_performance,
                 "status": c.status,
-                "image": f"children/{c.image}" if c.image else None,
+                "image": f"children/{c.image.replace('children/', '')}" if c.image else None,
                 "performances": performances
             })
 
@@ -367,41 +367,104 @@ def get_children_admin():
 @admin_bp.route("/donation-performance", methods=["GET", "OPTIONS"])
 @cross_origin(origin="http://localhost:5173", supports_credentials=True)
 def donation_performance():
-    perf_type = request.args.get("type")
+    if request.method == "OPTIONS":
+        return jsonify({"ok": True}), 200
 
-    # 🔹 DB se latest date uthao
-    reference_date = db.session.query(
-        func.max(DonationUsage.used_date)
-    ).scalar()
+    perf_type = request.args.get("type", "weekly").lower()
+    ref_date = date.today()
 
-    if not reference_date:
-        return jsonify({
-            "type": perf_type,
-            "total": 0
-        }), 200
-
-    q = db.session.query(func.sum(DonationUsage.amount_used))
+    labels = []
+    donations_data = []
+    usage_data = []
 
     if perf_type == "weekly":
-        start_date = reference_date - timedelta(days=7)
-        q = q.filter(
-            DonationUsage.used_date.between(start_date, reference_date)
-        )
+        # Past 7 days ending today
+        for i in range(6, -1, -1):
+            day_d = ref_date - timedelta(days=i)
+            labels.append(day_d.strftime("%a (%d %b)"))
+            d_sum = db.session.query(func.sum(Donation.amount))\
+                .filter(Donation.donation_date == day_d).scalar() or 0
+            u_sum = db.session.query(func.sum(DonationUsage.amount_used))\
+                .filter(DonationUsage.used_date == day_d).scalar() or 0
+            donations_data.append(float(d_sum))
+            usage_data.append(float(u_sum))
 
     elif perf_type == "monthly":
-        q = q.filter(
-            func.extract("month", DonationUsage.used_date) == reference_date.month,
-            func.extract("year", DonationUsage.used_date) == reference_date.year
-        )
+        # 4 blocks of the current month: 1-7, 8-14, 15-21, 22-end
+        year = ref_date.year
+        month = ref_date.month
+        ranges = [
+            ("Week 1 (1-7)", 1, 7),
+            ("Week 2 (8-14)", 8, 14),
+            ("Week 3 (15-21)", 15, 21),
+            ("Week 4 (22+)", 22, 31)
+        ]
+        for name, start_day, end_day in ranges:
+            labels.append(name)
+            d_sum = db.session.query(func.sum(Donation.amount))\
+                .filter(
+                    func.extract("year", Donation.donation_date) == year,
+                    func.extract("month", Donation.donation_date) == month,
+                    func.extract("day", Donation.donation_date) >= start_day,
+                    func.extract("day", Donation.donation_date) <= end_day
+                ).scalar() or 0
+            u_sum = db.session.query(func.sum(DonationUsage.amount_used))\
+                .filter(
+                    func.extract("year", DonationUsage.used_date) == year,
+                    func.extract("month", DonationUsage.used_date) == month,
+                    func.extract("day", DonationUsage.used_date) >= start_day,
+                    func.extract("day", DonationUsage.used_date) <= end_day
+                ).scalar() or 0
+            donations_data.append(float(d_sum))
+            usage_data.append(float(u_sum))
 
-    elif perf_type == "yearly":
-        q = q.filter(
-            func.extract("year", DonationUsage.used_date) == reference_date.year
-        )
+    else:  # yearly
+        year = ref_date.year
+        month_names = ["Jan", "Feb", "Mar", "Apr", "May", "Jun", "Jul", "Aug", "Sep", "Oct", "Nov", "Dec"]
+        for m_idx, m_name in enumerate(month_names, start=1):
+            labels.append(m_name)
+            d_sum = db.session.query(func.sum(Donation.amount))\
+                .filter(
+                    func.extract("year", Donation.donation_date) == year,
+                    func.extract("month", Donation.donation_date) == m_idx
+                ).scalar() or 0
+            u_sum = db.session.query(func.sum(DonationUsage.amount_used))\
+                .filter(
+                    func.extract("year", DonationUsage.used_date) == year,
+                    func.extract("month", DonationUsage.used_date) == m_idx
+                ).scalar() or 0
+            donations_data.append(float(d_sum))
+            usage_data.append(float(u_sum))
 
-    total = q.scalar() or 0
+    # Category breakdown for period
+    cat_query = db.session.query(
+        DonationUsage.used_for,
+        func.sum(DonationUsage.amount_used)
+    )
+    if perf_type == "weekly":
+        cat_query = cat_query.filter(DonationUsage.used_date >= ref_date - timedelta(days=7))
+    elif perf_type == "monthly":
+        cat_query = cat_query.filter(
+            func.extract("year", DonationUsage.used_date) == ref_date.year,
+            func.extract("month", DonationUsage.used_date) == ref_date.month
+        )
+    else:
+        cat_query = cat_query.filter(func.extract("year", DonationUsage.used_date) == ref_date.year)
+
+    cat_results = cat_query.group_by(DonationUsage.used_for).all()
+    categories = {cat: float(val or 0) for cat, val in cat_results}
+
+    total_donations = sum(donations_data)
+    total_used = sum(usage_data)
 
     return jsonify({
         "type": perf_type,
-        "total": float(total)
+        "labels": labels,
+        "values": donations_data,
+        "donations": donations_data,
+        "usage": usage_data,
+        "total": float(total_donations or total_used),
+        "total_donations": float(total_donations),
+        "total_used": float(total_used),
+        "categories": categories
     }), 200

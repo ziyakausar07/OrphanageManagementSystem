@@ -1,6 +1,7 @@
 import React, { useEffect, useState } from "react";
 import { useAuth } from "../../context/AuthContext";
 import { getNotifications, markNotificationRead } from "../../api/notification";
+import LoadingScreen from "../../components/LoadingScreen";
 
 const Message = () => {
   const { user } = useAuth();
@@ -40,7 +41,7 @@ const Message = () => {
     }
   };
 
-  if (loading) return <p style={styles.center}>Loading messages...</p>;
+  if (loading) return <LoadingScreen message="Loading messages..." />;
   if (error) return <p style={styles.center}>{error}</p>;
   if (!messages.length) return <p style={styles.center}>No messages</p>;
 

@@ -24,7 +24,17 @@ const Navbar = () => {
     <nav className="modern-navbar">
       {/* Brand Logo & Name */}
       <div className="nav-brand" onClick={() => navigate(getDashboardPath())}>
-        <div className="nav-brand-icon">🏡</div>
+        <div className="nav-brand-icon">
+          <img
+            src="/sushanti_logo.png"
+            alt="Sushanti Logo"
+            className="nav-brand-logo-img"
+            onError={(e) => {
+              e.target.onerror = null;
+              e.target.src = "/src/assets/sushanti_logo.png";
+            }}
+          />
+        </div>
         <div>
           <h2 className="nav-brand-title">Sushanti Children Home</h2>
           <span className="nav-brand-subtitle">Orphanage Management System</span>
@@ -87,12 +97,19 @@ const Navbar = () => {
           width: 44px;
           height: 44px;
           border-radius: 14px;
-          background: linear-gradient(135deg, #f97316 0%, #ea580c 100%);
+          background: #ffffff;
           display: flex;
           align-items: center;
           justify-content: center;
-          font-size: 22px;
-          box-shadow: 0 6px 16px rgba(249, 115, 22, 0.35);
+          box-shadow: 0 6px 16px rgba(249, 115, 22, 0.25);
+          overflow: hidden;
+          border: 2px solid #fed7aa;
+        }
+
+        .nav-brand-logo-img {
+          width: 100%;
+          height: 100%;
+          object-fit: cover;
         }
 
         .nav-brand-title {

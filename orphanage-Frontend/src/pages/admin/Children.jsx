@@ -1,6 +1,7 @@
 import React, { useEffect, useState } from "react";
 import { getChildrenAdmin } from "../../api/children";
 import { useNavigate } from "react-router-dom";
+import LoadingScreen from "../../components/LoadingScreen";
 
 const getImageUrl = (path) => {
   if (!path) return "https://images.unsplash.com/photo-1543332164-6e82f355badc?auto=format&fit=crop&w=300&q=80";
@@ -34,11 +35,7 @@ export default function ChildrenDashboard() {
     fetchChildren();
   }, []);
 
-  if (loading) return (
-    <div style={{ padding: 40, textAlign: "center", color: "#ea580c", fontWeight: 600 }}>
-      Loading children records...
-    </div>
-  );
+  if (loading) return <LoadingScreen message="Loading children records..." />;
   
   if (error) return (
     <div style={{ padding: 40, textAlign: "center", color: "#dc2626", fontWeight: 600 }}>

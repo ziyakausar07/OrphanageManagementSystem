@@ -1,6 +1,7 @@
 import React, { useEffect, useState } from "react";
 import api from "../../api/axiosInstance";
 import { useAuth } from "../../context/AuthContext";
+import LoadingScreen from "../../components/LoadingScreen";
 
 export default function Messages() {
   const { user, loading } = useAuth();
@@ -19,7 +20,7 @@ export default function Messages() {
       .finally(() => setLoadingMessages(false));
   }, [user, loading]);
 
-  if (loading || loadingMessages) return <p style={{textAlign:"center"}}>Loading messages...</p>;
+  if (loading || loadingMessages) return <LoadingScreen message="Loading messages..." />;
   if (!user) return <p style={{textAlign:"center"}}>Error: user not found</p>;
 
   return (

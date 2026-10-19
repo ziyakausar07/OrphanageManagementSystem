@@ -1,6 +1,7 @@
 import React, { useEffect, useState } from "react";
 import { useAuth } from "../../context/AuthContext";
 import api from "../../api/axiosInstance";
+import LoadingScreen from "../../components/LoadingScreen";
 
 const Profile = () => {
   const { user: authUser } = useAuth();
@@ -45,7 +46,7 @@ const Profile = () => {
     }
   };
 
-  if (loading) return <div className="center">Loading profile...</div>;
+  if (loading) return <LoadingScreen message="Loading profile..." />;
   if (error) return <div className="center error">{error}</div>;
   if (!user) return <div className="center">No user found</div>;
 
