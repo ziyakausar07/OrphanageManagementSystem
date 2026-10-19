@@ -18,7 +18,7 @@ admin_bp = Blueprint("admin", __name__, url_prefix="/api/admin")
 # ================= DASHBOARD =================
 @admin_bp.route("/dashboard", methods=["GET", "OPTIONS"])
 @cross_origin(origin="http://localhost:5173", supports_credentials=True)
-
+@role_required("ADMIN")
 def dashboard():
     if request.method == "OPTIONS":
         return jsonify({"ok": True}), 200
